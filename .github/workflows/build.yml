@@ -9,7 +9,6 @@ on:
         default: 'false'
 jobs:
   build:
-
     runs-on: macos-latest
 
     steps:
@@ -22,3 +21,9 @@ jobs:
       run: exit $( git status --porcelain --untracked-files=no | head -255 | wc -l )
     - run: npm run lint
     - run: make
+    
+    - name: Upload directory
+      uses: actions/upload-artifact@v2
+      with:
+        name: web artifact
+        path: /Users/runner/work/jitsi-meet/jitsi-meet/jitsi-meet.tar.bz2
