@@ -16,12 +16,14 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: '12.x'
+    - name: Homebrew
+      run: brew install cmake ninja coreutils
     - run: npm install
     - name: Check if the git repository is clean
       run: exit $( git status --porcelain --untracked-files=no | head -255 | wc -l )
     - run: npm run lint
     - run: make
-    
+
     - name: set up JDK 1.8
       uses: actions/setup-java@v1
       with:
