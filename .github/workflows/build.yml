@@ -68,4 +68,4 @@ jobs:
         name: artifacts
         path: |
           /Users/runner/work/jitsi-meet/jitsi-meet/jitsi-meet.tar.bz2
-          /Users/runner/work/jitsi-meet/jitsi-meet/ios/build/
+          /Users/runner/work/jitsi-meet/jitsi-meet/ios/sdk/out/
