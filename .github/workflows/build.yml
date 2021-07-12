@@ -22,8 +22,50 @@ jobs:
     - run: npm run lint
     - run: make
     
+
+
+
+    - name: Install pod dependencies
+      run: |
+        cd ios && pod install
+    - name: Build app
+      run: |       
+        mkdir -p ios/sdk/out
+        xcodebuild clean \
+            -workspace ios/jitsi-meet.xcworkspace \
+            -scheme JitsiMeetSDK
+        xcodebuild archive \
+            -workspace ios/jitsi-meet.xcworkspace \
+            -scheme JitsiMeetSDK  \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination='generic/platform=iOS Simulator' \
+            -archivePath ios/sdk/out/ios-simulator \
+            VALID_ARCHS=x86_64 \
+            ENABLE_BITCODE=NO \
+            SKIP_INSTALL=NO \
+            BUILD_LIBRARY_FOR_DISTRIBUTION=YES
+        xcodebuild archive \
+            -workspace ios/jitsi-meet.xcworkspace \
+            -scheme JitsiMeetSDK  \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination='generic/platform=iOS' \
+            -archivePath ios/sdk/out/ios-device \
+            VALID_ARCHS=arm64 \
+            ENABLE_BITCODE=NO \
+            SKIP_INSTALL=NO \
+            BUILD_LIBRARY_FOR_DISTRIBUTION=YES
+        xcodebuild -create-xcframework \
+            -framework ios/sdk/out/ios-device.xcarchive/Products/Library/Frameworks/JitsiMeetSDK.framework \
+            -framework ios/sdk/out/ios-simulator.xcarchive/Products/Library/Frameworks/JitsiMeetSDK.framework \
+            -output ios/sdk/out/JitsiMeetSDK.xcframework
+        cp -a node_modules/react-native-webrtc/apple/WebRTC.xcframework ios/sdk/out
+
     - name: Upload directory
       uses: actions/upload-artifact@v2
       with:
-        name: web artifact
-        path: /Users/runner/work/jitsi-meet/jitsi-meet/jitsi-meet.tar.bz2
+        name: artifacts
+        path: |
+          /Users/runner/work/jitsi-meet/jitsi-meet/jitsi-meet.tar.bz2
+          /Users/runner/work/jitsi-meet/jitsi-meet/ios/build/
