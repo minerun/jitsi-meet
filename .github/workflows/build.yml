@@ -1,0 +1,24 @@
+name: CI
+
+on: 
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    - run: npm install
+    - name: Check if the git repository is clean
+      run: exit $( git status --porcelain --untracked-files=no | head -255 | wc -l )
+    - run: npm run lint
+    - run: make
