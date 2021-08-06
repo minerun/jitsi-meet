@@ -1,12 +1,12 @@
 // @flow
 
+import Slider from '@react-native-community/slider';
 import _ from 'lodash';
 import React, { PureComponent } from 'react';
-import { Slider, View } from 'react-native';
+import { View } from 'react-native';
 import { withTheme } from 'react-native-paper';
 
 import { Icon, IconVolumeEmpty } from '../../../base/icons';
-import { getLocalParticipant } from '../../../base/participants';
 import { connect } from '../../../base/redux';
 import { setVolume } from '../../../participants-pane/actions.native';
 import { VOLUME_SLIDER_SCALE } from '../../constants';
@@ -101,7 +101,7 @@ class VolumeSlider extends PureComponent<Props, State> {
         return (
             <View style = { styles.volumeSliderContainer } >
                 <Icon
-                    size = { 20 }
+                    size = { 24 }
                     src = { IconVolumeEmpty } />
                 <Slider
                     maximumTrackTintColor = { palette.field02 }
@@ -144,12 +144,10 @@ function mapStateToProps(state, ownProps): Object {
     const { participantID } = ownProps;
     const { participantsVolume } = state['features/participants-pane'];
     const { startSilent } = state['features/base/config'];
-    const localParticipant = getLocalParticipant(state);
 
     return {
         _startSilent: Boolean(startSilent),
-        _volume: localParticipant ? undefined : participantID
-            ? participantsVolume[participantID] : undefined
+        _volume: participantID && participantsVolume[participantID]
     };
 }
 
