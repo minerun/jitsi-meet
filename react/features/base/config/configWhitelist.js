@@ -2,8 +2,9 @@ import extraConfigWhitelist from './extraConfigWhitelist';
 
 /**
  * The config keys to whitelist, the keys that can be overridden.
- * Currently we can only whitelist the first part of the properties, like
- * 'p2p.enabled' we whitelist all p2p options.
+ * Whitelisting a key allows all properties under that key to be overridden.
+ * For example whitelisting 'p2p' allows 'p2p.enabled' to be overridden, and
+ * overriding 'p2p.enabled' does not modify any other keys under 'p2p'.
  * The whitelist is used only for config.js.
  *
  * @type Array
@@ -14,11 +15,13 @@ export default [
     '_peerConnStatusRtcMuteTimeout',
     'abTesting',
     'analytics.disabled',
+    'analytics.rtcstatsEnabled',
     'audioLevelsInterval',
     'audioQuality',
     'apiLogLevels',
     'avgRtpStatsN',
     'backgroundAlpha',
+    'buttonsWithNotifyClick',
 
     /**
      * The display name of the CallKit call representing the conference/meeting
@@ -69,7 +72,9 @@ export default [
      */
     'callUUID',
 
+    'conferenceInfo',
     'channelLastN',
+    'connectionIndicators',
     'constraints',
     'brandingRoomAlias',
     'debug',
@@ -81,8 +86,11 @@ export default [
     'disableAEC',
     'disableAGC',
     'disableAP',
+    'disableAddingBackgroundImages',
     'disableAudioLevels',
+    'disableChatSmileys',
     'disableDeepLinking',
+    'disabledSounds',
     'disableFilmstripAutohiding',
     'disableInitialGUM',
     'disableH264',
@@ -91,16 +99,21 @@ export default [
     'disableIncomingMessageSound',
     'disableJoinLeaveSounds',
     'disableLocalVideoFlip',
+    'disableModeratorIndicator',
     'disableNS',
     'disablePolls',
     'disableProfile',
+    'disableReactions',
+    'disableRecordAudioNotification',
     'disableRemoteControl',
     'disableRemoteMute',
     'disableResponsiveTiles',
     'disableRtx',
     'disableShortcuts',
     'disableShowMoreStats',
+    'disableRemoveRaisedHandOnFocus',
     'disableSpeakerStatsSearch',
+    'speakerStatsOrder',
     'disableSimulcast',
     'disableThirdPartyRequests',
     'disableTileView',
@@ -108,9 +121,11 @@ export default [
     'doNotStoreRoom',
     'doNotFlipLocalVideo',
     'dropbox',
+    'e2eeLabels',
     'e2eping',
     'enableDisplayNameInStats',
     'enableEmailInStats',
+    'enableEncodedTransformSupport',
     'enableIceRestart',
     'enableInsecureRoomNameWarning',
     'enableLayerSuspension',
@@ -120,6 +135,7 @@ export default [
     'enableSaveLogs',
     'enableScreenshotCapture',
     'enableTalkWhileMuted',
+    'enableUnifiedOnChrome',
     'enableNoAudioDetection',
     'enableNoisyMicDetection',
     'enableTcc',
@@ -133,6 +149,7 @@ export default [
     'forceTurnRelay',
     'gatherStats',
     'googleApiApplicationClientID',
+    'hiddenPremeetingButtons',
     'hideConferenceSubject',
     'hideRecordingLabel',
     'hideParticipantsStats',
@@ -160,6 +177,7 @@ export default [
     'requireDisplayName',
     'remoteVideoMenu',
     'roomPasswordNumberOfDigits',
+    'readOnlyName',
     'replaceParticipant',
     'resolution',
     'startAudioMuted',
@@ -174,9 +192,10 @@ export default [
     'subject',
     'testing',
     'toolbarButtons',
+    'toolbarConfig',
     'useHostPageLocalStorage',
     'useTurnUdp',
-    'videoQuality.persist',
+    'videoQuality',
     'webrtcIceTcpDisable',
     'webrtcIceUdpDisable'
 ].concat(extraConfigWhitelist);

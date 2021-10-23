@@ -135,8 +135,11 @@ function _addConferenceListeners(conference, dispatch, state) {
 
             // Remove the tracks from peerconnection as well.
             for (const track of localTracks) {
-                if ((audioMuted && track.jitsiTrack.getType() === MEDIA_TYPE.AUDIO)
-                    || (videoMuted && track.jitsiTrack.getType() === MEDIA_TYPE.VIDEO)) {
+                const trackType = track.jitsiTrack.getType();
+
+                // Do not remove the audio track on RN. Starting with iOS 15 it will fail to unmute otherwise.
+                if ((audioMuted && trackType === MEDIA_TYPE.AUDIO && navigator.product !== 'ReactNative')
+                        || (videoMuted && trackType === MEDIA_TYPE.VIDEO)) {
                     dispatch(replaceLocalTrack(track.jitsiTrack, null, conference));
                 }
             }
@@ -357,7 +360,7 @@ export function conferenceUniqueIdSet(conference: Object) {
  * the local participant will (try to) join.
  * @returns {Function}
  */
-function _conferenceWillJoin(conference: Object) {
+export function _conferenceWillJoin(conference: Object) {
     return (dispatch: Dispatch<any>, getState: Function) => {
         const localTracks
             = getLocalTracks(getState()['features/base/tracks'])

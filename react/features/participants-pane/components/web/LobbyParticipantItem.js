@@ -1,11 +1,11 @@
 // @flow
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
 
-import { approveKnockingParticipant, rejectKnockingParticipant } from '../../../lobby/actions';
+import { hasRaisedHand } from '../../../base/participants';
 import { ACTION_TRIGGER, MEDIA_STATE } from '../../constants';
+import { useLobbyActions } from '../../hooks';
 
 import ParticipantItem from './ParticipantItem';
 import { ParticipantActionButton } from './styled';
@@ -13,15 +13,28 @@ import { ParticipantActionButton } from './styled';
 type Props = {
 
     /**
+     * If an overflow drawer should be displayed.
+     */
+    overflowDrawer: boolean,
+
+    /**
+     * Callback used to open a drawer with admit/reject actions.
+     */
+    openDrawerForParticipant: Function,
+
+    /**
      * Participant reference
      */
     participant: Object
 };
 
-export const LobbyParticipantItem = ({ participant: p }: Props) => {
-    const dispatch = useDispatch();
-    const admit = useCallback(() => dispatch(approveKnockingParticipant(p.id), [ dispatch ]));
-    const reject = useCallback(() => dispatch(rejectKnockingParticipant(p.id), [ dispatch ]));
+export const LobbyParticipantItem = ({
+    overflowDrawer,
+    participant: p,
+    openDrawerForParticipant
+}: Props) => {
+    const { id } = p;
+    const [ admit, reject ] = useLobbyActions({ participantID: id });
     const { t } = useTranslation();
 
     return (
@@ -30,12 +43,15 @@ export const LobbyParticipantItem = ({ participant: p }: Props) => {
             audioMediaState = { MEDIA_STATE.NONE }
             displayName = { p.name }
             local = { p.local }
-            participantID = { p.id }
-            raisedHand = { p.raisedHand }
-            videoMuteState = { MEDIA_STATE.NONE }
+            openDrawerForParticipant = { openDrawerForParticipant }
+            overflowDrawer = { overflowDrawer }
+            participantID = { id }
+            raisedHand = { hasRaisedHand(p) }
+            videoMediaState = { MEDIA_STATE.NONE }
             youText = { t('chat.you') }>
             <ParticipantActionButton
-                onClick = { reject }>
+                onClick = { reject }
+                primary = { false }>
                 {t('lobby.reject')}
             </ParticipantActionButton>
             <ParticipantActionButton

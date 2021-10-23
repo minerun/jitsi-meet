@@ -274,6 +274,17 @@ export function getRemoteParticipants(stateful: Object | Function) {
 }
 
 /**
+ * Selectors for the getting the remote participants in the order that they are displayed in the filmstrip.
+ *
+@param {(Function|Object)} stateful - The (whole) redux state, or redux's {@code getState} function to be used to
+ * retrieve the state features/filmstrip.
+ * @returns {Array<string>}
+ */
+export function getRemoteParticipantsSorted(stateful: Object | Function) {
+    return toState(stateful)['features/filmstrip'].remoteParticipants;
+}
+
+/**
  * Returns the participant which has its pinned state set to truthy.
  *
  * @param {(Function|Object)} stateful - The (whole) redux state, or redux's
@@ -444,51 +455,26 @@ async function _getFirstLoadableAvatarUrl(participant, store) {
     return undefined;
 }
 
-
 /**
- * Selector for retrieving sorted participants by display name.
+ * Get the participants queue with raised hands.
  *
  * @param {(Function|Object)} stateful - The (whole) redux state, or redux's
  * {@code getState} function to be used to retrieve the state
  * features/base/participants.
  * @returns {Array<Object>}
  */
-export function getSortedParticipants(stateful: Object | Function) {
-    const localParticipant = getLocalParticipant(stateful);
-    const remoteParticipants = getRemoteParticipants(stateful);
+export function getRaiseHandsQueue(stateful: Object | Function): Array<Object> {
+    const { raisedHandsQueue } = toState(stateful)['features/base/participants'];
 
-    const items = [];
-    const dominantSpeaker = getDominantSpeakerParticipant(stateful);
-
-    remoteParticipants.forEach(p => {
-        if (p !== dominantSpeaker) {
-            items.push(p);
-        }
-    });
-
-    items.sort((a, b) =>
-        getParticipantDisplayName(stateful, a.id).localeCompare(getParticipantDisplayName(stateful, b.id))
-    );
-
-    items.unshift(localParticipant);
-
-    if (dominantSpeaker && dominantSpeaker !== localParticipant) {
-        items.unshift(dominantSpeaker);
-    }
-
-    return items;
+    return raisedHandsQueue;
 }
 
 /**
- * Selector for retrieving ids of alphabetically sorted participants by name.
+ * Returns whether the given participant has his hand raised or not.
  *
- * @param {(Function|Object)} stateful - The (whole) redux state, or redux's
- * {@code getState} function to be used to retrieve the state
- * features/base/participants.
- * @returns {Array<string>}
+ * @param {Object} participant - The participant.
+ * @returns {boolean} - Whether participant has raise hand or not.
  */
-export function getSortedParticipantIds(stateful: Object | Function): Array<string> {
-    const participantIds = getSortedParticipants(stateful).map((p): Object => p.id);
-
-    return participantIds;
+export function hasRaisedHand(participant: Object): boolean {
+    return Boolean(participant && participant.raisedHandTimestamp);
 }

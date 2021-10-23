@@ -135,7 +135,6 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
         const {
             iAmRecorder,
             iAmSipGateway,
-            disableRecordAudioNotification,
             recordingLimit
         } = getState()['features/base/config'];
 
@@ -165,14 +164,6 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
 
                 sendAnalytics(createRecordingEvent('start', mode));
 
-                if (typeof APP !== 'undefined') {
-                    APP.API.notifyRecordingStatusChanged(true, mode);
-                }
-
-                if (disableRecordAudioNotification) {
-                    break;
-                }
-
                 let soundID;
 
                 if (mode === JitsiRecordingConstants.mode.FILE) {
@@ -200,6 +191,7 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
                 }
                 sendAnalytics(createRecordingEvent('stop', mode, duration));
 
+<<<<<<< HEAD
                 if (typeof APP !== 'undefined') {
                     APP.API.notifyRecordingStatusChanged(false, mode);
                 }
@@ -208,6 +200,8 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
                     break;
                 }
 
+=======
+>>>>>>> 3ef6859c9ba58817653948ee877696f21149c898
                 if (mode === JitsiRecordingConstants.mode.FILE) {
                     soundOff = RECORDING_OFF_SOUND_ID;
                     soundOn = RECORDING_ON_SOUND_ID;

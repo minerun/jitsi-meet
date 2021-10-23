@@ -22,6 +22,8 @@ import {
 import { getRecordingLink, getResourceId, isSavingRecordingOnDropbox } from './functions';
 import logger from './logger';
 
+declare var APP: Object;
+
 /**
  * Clears the data of every recording sessions.
  *
@@ -188,6 +190,10 @@ export function showStartedRecordingNotification(
                 try {
                     const link = await getRecordingLink(recordingSharingUrl, sessionId, region, tenant);
 
+                    if (typeof APP === 'object') {
+                        APP.API.notifyRecordingLinkAvailable(link);
+                    }
+
                     // add the option to copy recording link
                     dialogProps.customActionNameKey = 'recording.copyLink';
                     dialogProps.customActionHandler = () => copyText(link);
@@ -204,7 +210,7 @@ export function showStartedRecordingNotification(
             }
         }
 
-        dispatch(showNotification(dialogProps));
+        dispatch(showNotification(dialogProps, NOTIFICATION_TIMEOUT));
     };
 }
 

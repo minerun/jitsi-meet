@@ -16,6 +16,11 @@ export type Props = {
     ...$Exact<AbstractDialogTabProps>,
 
     /**
+     * Whether or not the reactions feature is enabled.
+     */
+    enableReactions: Boolean,
+
+    /**
      * Whether or not the sound for the incoming message should play.
      */
     soundsIncomingMessage: Boolean,
@@ -34,6 +39,11 @@ export type Props = {
      * Whether or not the sound for the talk while muted notification should play.
      */
     soundsTalkWhileMuted: Boolean,
+
+    /**
+    * Whether or not the sound for reactions should play.
+    */
+    soundsReactions: Boolean,
 
     /**
      * Invoked to obtain translated strings.
@@ -85,6 +95,8 @@ class SoundsTab extends AbstractDialogTab<Props> {
             soundsParticipantJoined,
             soundsParticipantLeft,
             soundsTalkWhileMuted,
+            soundsReactions,
+            enableReactions,
             t
         } = this.props;
 
@@ -95,6 +107,12 @@ class SoundsTab extends AbstractDialogTab<Props> {
                 <h2 className = 'mock-atlaskit-label'>
                     {t('settings.playSounds')}
                 </h2>
+                {enableReactions && <Checkbox
+                    isChecked = { soundsReactions }
+                    label = { t('settings.reactions') }
+                    name = 'soundsReactions'
+                    onChange = { this._onChange } />
+                }
                 <Checkbox
                     isChecked = { soundsIncomingMessage }
                     label = { t('settings.incomingMessage') }

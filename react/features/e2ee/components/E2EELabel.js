@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import { translate } from '../../base/i18n';
 import { IconE2EE } from '../../base/icons';
 import { Label } from '../../base/label';
+import { COLORS } from '../../base/label/constants';
 import { connect } from '../../base/redux';
 import { Tooltip } from '../../base/tooltip';
 
@@ -28,13 +29,15 @@ class E2EELabel extends Component<Props> {
         if (!this.props._showLabel) {
             return null;
         }
+        const { _e2eeLabels, t } = this.props;
+        const content = _e2eeLabels?.labelToolTip || t('e2ee.labelToolTip');
 
         return (
             <Tooltip
-                content = { this.props.t('e2ee.labelToolTip') }
+                content = { content }
                 position = { 'bottom' }>
                 <Label
-                    className = 'label--green'
+                    color = { COLORS.green }
                     icon = { IconE2EE } />
             </Tooltip>
         );

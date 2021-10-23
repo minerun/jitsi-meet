@@ -1,6 +1,7 @@
 // @flow
 
 import React, { Component } from 'react';
+import { batch } from 'react-redux';
 
 import { isMobileBrowser } from '../../../base/environment/utils';
 import { translate } from '../../../base/i18n';
@@ -10,6 +11,7 @@ import {
 } from '../../../base/participants';
 import { Popover } from '../../../base/popover';
 import { connect } from '../../../base/redux';
+import { setParticipantContextMenuOpen } from '../../../base/responsive-ui/actions';
 import { getLocalVideoTrack } from '../../../base/tracks';
 import ConnectionIndicatorContent from '../../../connection-indicator/components/web/ConnectionIndicatorContent';
 import { getCurrentLayout, LAYOUTS } from '../../../video-layout';
@@ -92,6 +94,7 @@ class LocalVideoMenuTriggerButton extends Component<Props> {
 
         this.popoverRef = React.createRef();
         this._onPopoverClose = this._onPopoverClose.bind(this);
+        this._onPopoverOpen = this._onPopoverOpen.bind(this);
     }
 
     /**
@@ -161,24 +164,37 @@ class LocalVideoMenuTriggerButton extends Component<Props> {
                 ? <Popover
                     content = { content }
                     onPopoverClose = { this._onPopoverClose }
+                    onPopoverOpen = { this._onPopoverOpen }
                     overflowDrawer = { _overflowDrawer }
                     position = { _menuPosition }
                     ref = { this.popoverRef }>
-                    {!isMobileBrowser() && (
+                    {!_overflowDrawer && (
                         <span
                             className = 'popover-trigger local-video-menu-trigger'>
-                            <Icon
+                            {!isMobileBrowser() && <Icon
                                 ariaLabel = { t('dialog.localUserControls') }
                                 role = 'button'
-                                size = '1em'
+                                size = '1.4em'
                                 src = { IconMenuThumb }
                                 tabIndex = { 0 }
                                 title = { t('dialog.localUserControls') } />
+                            }
                         </span>
                     )}
                 </Popover>
                 : null
         );
+    }
+
+    _onPopoverOpen: () => void;
+
+    /**
+     * Disable and hide toolbox while context menu is open.
+     *
+     * @returns {void}
+     */
+    _onPopoverOpen() {
+        this.props.dispatch(setParticipantContextMenuOpen(true));
     }
 
     _onPopoverClose: () => void;
@@ -189,7 +205,12 @@ class LocalVideoMenuTriggerButton extends Component<Props> {
      * @returns {void}
      */
     _onPopoverClose() {
-        this.props.dispatch(renderConnectionStatus(false));
+        const { dispatch } = this.props;
+
+        batch(() => {
+            dispatch(setParticipantContextMenuOpen(false));
+            dispatch(renderConnectionStatus(false));
+        });
     }
 }
 

@@ -3,6 +3,7 @@
 import ButtonGroup from '@atlaskit/button/button-group';
 import Button from '@atlaskit/button/standard-button';
 import Modal, { ModalFooter } from '@atlaskit/modal-dialog';
+import { withStyles } from '@material-ui/core/styles';
 import _ from 'lodash';
 import React, { Component } from 'react';
 
@@ -28,8 +29,12 @@ const OK_BUTTON_ID = 'modal-dialog-ok-button';
  *
  * @static
  */
-type Props = {
-    ...DialogProps,
+type Props = DialogProps & {
+
+    /**
+     * An object containing the CSS classes.
+     */
+    classes: Object,
 
     /**
      * Custom dialog header that replaces the standard heading.
@@ -78,6 +83,11 @@ type Props = {
     onDecline?: Function,
 
     /**
+     * Callback invoked when setting the ref of the Dialog.
+     */
+    onDialogRef?: Function,
+
+    /**
      * Disables rendering of the submit button.
      */
     submitDisabled: boolean,
@@ -95,6 +105,19 @@ type Props = {
      * - string value for percentage
      */
     width: string
+};
+
+/**
+ * Creates the styles for the component.
+ *
+ * @returns {Object}
+ */
+const styles = () => {
+    return {
+        footer: {
+            boxShadow: 'none'
+        }
+    };
 };
 
 /**
@@ -127,7 +150,7 @@ class StatelessDialog extends Component<Props> {
         this._onKeyPress = this._onKeyPress.bind(this);
         this._onSubmit = this._onSubmit.bind(this);
         this._renderFooter = this._renderFooter.bind(this);
-        this._setDialogElement = this._setDialogElement.bind(this);
+        this._onDialogRef = this._onDialogRef.bind(this);
     }
 
     /**
@@ -166,7 +189,7 @@ class StatelessDialog extends Component<Props> {
                 width = { width || 'medium' }>
                 <div
                     onKeyPress = { this._onKeyPress }
-                    ref = { this._setDialogElement }>
+                    ref = { this._onDialogRef }>
                     <form
                         className = 'modal-dialog-form'
                         id = 'modal-dialog-form'
@@ -201,7 +224,9 @@ class StatelessDialog extends Component<Props> {
         }
 
         return (
-            <ModalFooter showKeyline = { propsFromModalFooter.showKeyline } >
+            <ModalFooter
+                className = { this.props.classes.footer }
+                showKeyline = { propsFromModalFooter.showKeyline } >
                 {
 
                     /**
@@ -319,19 +344,18 @@ class StatelessDialog extends Component<Props> {
         );
     }
 
-    _setDialogElement: (?HTMLElement) => void;
+    _onDialogRef: (?Element) => void;
 
     /**
-     * Sets the instance variable for the div containing the component's dialog
-     * element so it can be accessed directly.
+     * Callback invoked when setting the ref of the dialog's child passing the Modal ref.
+     * It is done this way because we cannot directly access the ref of the Modal component.
      *
-     * @param {HTMLElement} element - The DOM element for the component's
-     * dialog.
+     * @param {HTMLElement} element - The DOM element for the dialog.
      * @private
      * @returns {void}
      */
-    _setDialogElement(element: ?HTMLElement) {
-        this._dialogElement = element;
+    _onDialogRef(element: ?Element) {
+        this.props.onDialogRef && this.props.onDialogRef(element && element.parentNode);
     }
 
     _onKeyPress: (Object) => void;
@@ -364,4 +388,4 @@ class StatelessDialog extends Component<Props> {
     }
 }
 
-export default translate(StatelessDialog);
+export default translate(withStyles(styles)(StatelessDialog));

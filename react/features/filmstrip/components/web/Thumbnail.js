@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import { createScreenSharingIssueEvent, sendAnalytics } from '../../../analytics';
 import { AudioLevelIndicator } from '../../../audio-level-indicator';
 import { Avatar } from '../../../base/avatar';
+import { isNameReadOnly } from '../../../base/config';
 import { isMobileBrowser } from '../../../base/environment/utils';
 import JitsiMeetJS from '../../../base/lib-jitsi-meet/_';
 import { MEDIA_TYPE, VideoTrack } from '../../../base/media';
@@ -14,6 +15,7 @@ import {
     pinParticipant
 } from '../../../base/participants';
 import { connect } from '../../../base/redux';
+import { ASPECT_RATIO_NARROW } from '../../../base/responsive-ui/constants';
 import { isTestModeEnabled } from '../../../base/testing';
 import {
     getLocalAudioTrack,
@@ -30,14 +32,12 @@ import { LocalVideoMenuTriggerButton, RemoteVideoMenuTriggerButton } from '../..
 import { setVolume } from '../../actions.web';
 import {
     DISPLAY_MODE_TO_CLASS_NAME,
-    DISPLAY_MODE_TO_STRING,
     DISPLAY_VIDEO,
     DISPLAY_VIDEO_WITH_NAME,
     VIDEO_TEST_EVENTS,
     SHOW_TOOLBAR_CONTEXT_MENU_AFTER
 } from '../../constants';
 import { isVideoPlayable, computeDisplayMode } from '../../functions';
-import logger from '../../logger';
 
 const JitsiTrackEvents = JitsiMeetJS.events.track;
 
@@ -75,6 +75,11 @@ export type State = {|
 export type Props = {|
 
     /**
+     * If the display name is editable or not.
+     */
+    _allowEditing: boolean,
+
+    /**
      * The audio track related to the participant.
      */
     _audioTrack: ?Object,
@@ -103,11 +108,6 @@ export type Props = {|
      * Indicates whether the local video flip feature is disabled or not.
      */
     _disableLocalVideoFlip: boolean,
-
-    /**
-     * Indicates whether the profile functionality is disabled.
-     */
-    _disableProfile: boolean,
 
     /**
      * The display mode of the thumbnail.
@@ -145,6 +145,11 @@ export type Props = {|
     _isMobile: boolean,
 
     /**
+     * Whether we are currently running in a mobile browser in portrait orientation.
+     */
+    _isMobilePortrait: boolean,
+
+    /**
      * Indicates whether the participant is screen sharing.
      */
     _isScreenSharing: boolean,
@@ -175,7 +180,7 @@ export type Props = {|
     _localFlipX: boolean,
 
     /**
-     * An object with information about the participant related to the thumbnaul.
+     * An object with information about the participant related to the thumbnail.
      */
     _participant: Object,
 
@@ -327,11 +332,8 @@ class Thumbnail extends Component<Props, State> {
      */
     _onDisplayModeChanged() {
         const input = Thumbnail.getDisplayModeInput(this.props, this.state);
-        const displayModeString = DISPLAY_MODE_TO_STRING[this.state.displayMode];
-        const id = this.props._participant?.id;
 
         this._maybeSendScreenSharingIssueEvents(input);
-        logger.debug(`Displaying ${displayModeString} for ${id}, data: [${JSON.stringify(input)}]`);
     }
 
     /**
@@ -762,22 +764,27 @@ class Thumbnail extends Component<Props, State> {
      */
     _renderLocalParticipant() {
         const {
+            _allowEditing,
             _defaultLocalDisplayName,
             _disableLocalVideoFlip,
             _isMobile,
+            _isMobilePortrait,
             _isScreenSharing,
             _localFlipX,
-            _disableProfile,
             _participant,
             _videoTrack
         } = this.props;
         const { id } = _participant || {};
         const { audioLevel } = this.state;
         const styles = this._getStyles();
-        const containerClassName = this._getContainerClassName();
+        let containerClassName = this._getContainerClassName();
         const videoTrackClassName
             = !_disableLocalVideoFlip && _videoTrack && !_isScreenSharing && _localFlipX ? 'flipVideoX' : '';
 
+        if (_isMobilePortrait) {
+            styles.thumbnail.height = styles.thumbnail.width;
+            containerClassName = `${containerClassName} self-view-mobile-portrait`;
+        }
 
         return (
             <span
@@ -805,6 +812,7 @@ class Thumbnail extends Component<Props, State> {
                 </span>
                 <div className = 'videocontainer__toolbar'>
                     <StatusIndicators participantID = { id } />
+                    <span className = 'videocontainer__participant-name'>{_participant.name}</span>
                 </div>
                 <div className = 'videocontainer__toptoolbar'>
                     { this._renderTopIndicators() }
@@ -814,7 +822,7 @@ class Thumbnail extends Component<Props, State> {
                     className = 'displayNameContainer'
                     onClick = { onClick }>
                     <DisplayName
-                        allowEditing = { !_disableProfile }
+                        allowEditing = { _allowEditing }
                         displayNameSuffix = { _defaultLocalDisplayName }
                         elementID = 'localDisplayName'
                         participantID = { id } />
@@ -952,6 +960,7 @@ class Thumbnail extends Component<Props, State> {
                 </div>
                 <div className = 'videocontainer__toolbar'>
                     <StatusIndicators participantID = { id } />
+                    <span className = 'videocontainer__participant-name'>{_participant.name}</span>
                 </div>
                 <div className = 'videocontainer__hoverOverlay' />
                 <div className = 'displayNameContainer'>
@@ -1043,10 +1052,10 @@ function _mapStateToProps(state, ownProps): Object {
         ? getLocalAudioTrack(tracks) : getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, participantID);
     const _currentLayout = getCurrentLayout(state);
     let size = {};
+    let _isMobilePortrait = false;
     const {
         startSilent,
         disableLocalVideoFlip,
-        disableProfile,
         iAmRecorder,
         iAmSipGateway
     } = state['features/base/config'];
@@ -1078,9 +1087,12 @@ function _mapStateToProps(state, ownProps): Object {
             _height: height
         };
 
+        _isMobilePortrait = _isMobile && state['features/base/responsive-ui'].aspectRatio === ASPECT_RATIO_NARROW;
+
         break;
     }
     case LAYOUTS.TILE_VIEW: {
+
         const { width, height } = state['features/filmstrip'].tileViewDimensions.thumbnailSize;
 
         size = {
@@ -1092,18 +1104,21 @@ function _mapStateToProps(state, ownProps): Object {
     }
 
     return {
+        _allowEditing: !isNameReadOnly(state),
         _audioTrack,
-        _connectionIndicatorAutoHideEnabled: interfaceConfig.CONNECTION_INDICATOR_AUTO_HIDE_ENABLED,
-        _connectionIndicatorDisabled: _isMobile || interfaceConfig.CONNECTION_INDICATOR_DISABLED,
+        _connectionIndicatorAutoHideEnabled:
+        Boolean(state['features/base/config'].connectionIndicators?.autoHide ?? true),
+        _connectionIndicatorDisabled: _isMobile
+            || Boolean(state['features/base/config'].connectionIndicators?.disabled),
         _currentLayout,
         _defaultLocalDisplayName: interfaceConfig.DEFAULT_LOCAL_DISPLAY_NAME,
         _disableLocalVideoFlip: Boolean(disableLocalVideoFlip),
-        _disableProfile: disableProfile,
         _isHidden: isLocal && iAmRecorder && !iAmSipGateway,
         _isAudioOnly: Boolean(state['features/base/audio-only'].enabled),
         _isCurrentlyOnLargeVideo: state['features/large-video']?.participantId === id,
         _isDominantSpeakerDisabled: interfaceConfig.DISABLE_DOMINANT_SPEAKER_INDICATOR,
         _isMobile,
+        _isMobilePortrait,
         _isScreenSharing: _videoTrack?.videoType === 'desktop',
         _isTestModeEnabled: isTestModeEnabled(state),
         _isVideoPlayable: id && isVideoPlayable(state, id),

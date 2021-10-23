@@ -2,12 +2,10 @@
 
 import Flag from '@atlaskit/flag';
 import EditorInfoIcon from '@atlaskit/icon/glyph/editor/info';
-import ErrorIcon from '@atlaskit/icon/glyph/error';
-import WarningIcon from '@atlaskit/icon/glyph/warning';
-import { colors } from '@atlaskit/theme';
 import React from 'react';
 
 import { translate } from '../../../base/i18n';
+import { colors } from '../../../base/ui/Tokens';
 import { NOTIFICATION_TYPE } from '../../constants';
 import AbstractNotification, {
     type Props
@@ -21,11 +19,9 @@ declare var interfaceConfig: Object;
  * @type {{error, info, normal, success, warning}}
  */
 const ICON_COLOR = {
-    error: colors.R400,
-    info: colors.N500,
-    normal: colors.N0,
-    success: colors.G400,
-    warning: colors.Y200
+    error: colors.error06,
+    normal: colors.primary06,
+    warning: colors.warning05
 };
 
 /**
@@ -42,7 +38,11 @@ class Notification extends AbstractNotification<Props> {
      */
     render() {
         const {
+<<<<<<< HEAD
             appearance,
+=======
+            hideErrorSupportLink,
+>>>>>>> 3ef6859c9ba58817653948ee877696f21149c898
             t,
             title,
             titleArguments,
@@ -52,8 +52,7 @@ class Notification extends AbstractNotification<Props> {
 
         return (
             <Flag
-                actions = { this._mapAppearanceToButtons() }
-                appearance = { appearance }
+                actions = { this._mapAppearanceToButtons(hideErrorSupportLink) }
                 description = { this._renderDescription() }
                 icon = { this._mapAppearanceToIcon() }
                 id = { uid }
@@ -160,31 +159,13 @@ class Notification extends AbstractNotification<Props> {
         const secIconColor = ICON_COLOR[this.props.appearance];
         const iconSize = 'medium';
 
-        switch (appearance) {
-        case NOTIFICATION_TYPE.ERROR:
-            return (
-                <ErrorIcon
-                    label = { appearance }
-                    secondaryColor = { secIconColor }
-                    size = { iconSize } />
-            );
-
-        case NOTIFICATION_TYPE.WARNING:
-            return (
-                <WarningIcon
-                    label = { appearance }
-                    secondaryColor = { secIconColor }
-                    size = { iconSize } />
-            );
-
-        default:
-            return (
-                <EditorInfoIcon
-                    label = { appearance }
-                    secondaryColor = { secIconColor }
-                    size = { iconSize } />
-            );
-        }
+        return <>
+            <div className = { `ribbon ${appearance}` } />
+            <EditorInfoIcon
+                label = { appearance }
+                secondaryColor = { secIconColor }
+                size = { iconSize } />
+        </>;
     }
 }
 

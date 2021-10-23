@@ -2,6 +2,7 @@
 
 import '../analytics/reducer';
 import '../authentication/reducer';
+import '../av-moderation/reducer';
 import '../base/app/reducer';
 import '../base/audio-only/reducer';
 import '../base/color-scheme/reducer';
@@ -46,6 +47,7 @@ import '../reactions/reducer';
 import '../recent-list/reducer';
 import '../recording/reducer';
 import '../settings/reducer';
+import '../speaker-stats/reducer';
 import '../subtitles/reducer';
 import '../screen-share/reducer';
 import '../toolbox/reducer';

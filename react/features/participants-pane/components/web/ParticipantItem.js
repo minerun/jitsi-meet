@@ -1,8 +1,9 @@
 // @flow
 
-import React, { type Node } from 'react';
+import React, { type Node, useCallback } from 'react';
 
 import { Avatar } from '../../../base/avatar';
+import { translate } from '../../../base/i18n';
 import {
     ACTION_TRIGGER,
     AudioStateIcons,
@@ -14,10 +15,12 @@ import {
 
 import { RaisedHandIndicator } from './RaisedHandIndicator';
 import {
+    ModeratorLabel,
     ParticipantActionsHover,
     ParticipantActionsPermanent,
     ParticipantContainer,
     ParticipantContent,
+    ParticipantDetailsContainer,
     ParticipantName,
     ParticipantNameContainer,
     ParticipantStates
@@ -49,6 +52,11 @@ type Props = {
     children: Node,
 
     /**
+     * Whether or not to disable the moderator indicator.
+     */
+    disableModeratorIndicator: boolean,
+
+    /**
      * The name of the participant. Used for showing lobby names.
      */
     displayName: string,
@@ -59,14 +67,29 @@ type Props = {
     isHighlighted?: boolean,
 
     /**
+     * Whether or not the participant is a moderator.
+     */
+    isModerator: boolean,
+
+    /**
      * True if the participant is local.
      */
-    local: boolean,
+    local: Boolean,
+
+    /**
+     * Opens a drawer with participant actions.
+     */
+    openDrawerForParticipant: Function,
 
     /**
      * Callback for when the mouse leaves this component
      */
     onLeave?: Function,
+
+    /**
+     * If an overflow drawer can be opened.
+     */
+    overflowDrawer?: boolean,
 
     /**
      * The ID of the participant.
@@ -81,7 +104,12 @@ type Props = {
     /**
      * Media state for video
      */
-    videoMuteState: MediaState,
+    videoMediaState: MediaState,
+
+    /**
+     * Invoked to obtain translated strings.
+     */
+    t: Function,
 
     /**
      * The translated "you" text.
@@ -95,26 +123,37 @@ type Props = {
  * @param {Props} props - The props of the component.
  * @returns {ReactNode}
  */
-export default function ParticipantItem({
-    children,
-    isHighlighted,
-    onLeave,
+function ParticipantItem({
     actionsTrigger = ACTION_TRIGGER.HOVER,
     audioMediaState = MEDIA_STATE.NONE,
-    videoMuteState = MEDIA_STATE.NONE,
+    children,
+    disableModeratorIndicator,
     displayName,
-    participantID,
+    isHighlighted,
+    isModerator,
     local,
+    onLeave,
+    openDrawerForParticipant,
+    overflowDrawer,
+    participantID,
     raisedHand,
+    t,
+    videoMediaState = MEDIA_STATE.NONE,
     youText
 }: Props) {
     const ParticipantActions = Actions[actionsTrigger];
+    const onClick = useCallback(
+        () => openDrawerForParticipant({
+            participantID,
+            displayName
+        }));
 
     return (
         <ParticipantContainer
             id = { `participant-item-${participantID}` }
             isHighlighted = { isHighlighted }
             local = { local }
+            onClick = { !local && overflowDrawer ? onClick : undefined }
             onMouseLeave = { onLeave }
             trigger = { actionsTrigger }>
             <Avatar
@@ -122,19 +161,26 @@ export default function ParticipantItem({
                 participantId = { participantID }
                 size = { 32 } />
             <ParticipantContent>
-                <ParticipantNameContainer>
-                    <ParticipantName>
-                        { displayName }
-                    </ParticipantName>
-                    { local ? <span>&nbsp;({ youText })</span> : null }
-                </ParticipantNameContainer>
+                <ParticipantDetailsContainer>
+                    <ParticipantNameContainer>
+                        <ParticipantName>
+                            { displayName }
+                        </ParticipantName>
+                        { local ? <span>&nbsp;({ youText })</span> : null }
+                    </ParticipantNameContainer>
+                    {isModerator && !disableModeratorIndicator && <ModeratorLabel>
+                        {t('videothumbnail.moderator')}
+                    </ModeratorLabel>}
+                </ParticipantDetailsContainer>
                 { !local && <ParticipantActions children = { children } /> }
                 <ParticipantStates>
                     { raisedHand && <RaisedHandIndicator /> }
-                    { VideoStateIcons[videoMuteState] }
+                    { VideoStateIcons[videoMediaState] }
                     { AudioStateIcons[audioMediaState] }
                 </ParticipantStates>
             </ParticipantContent>
         </ParticipantContainer>
     );
 }
+
+export default translate(ParticipantItem);
