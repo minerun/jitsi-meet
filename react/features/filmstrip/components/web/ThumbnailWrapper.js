@@ -15,7 +15,7 @@ type Props = {
     /**
      * The horizontal offset in px for the thumbnail. Used to center the thumbnails in the last row in tile view.
      */
-     _horizontalOffset: number,
+    _horizontalOffset: number,
 
     /**
      * The ID of the participant associated with the Thumbnail.
@@ -104,6 +104,8 @@ function _mapStateToProps(state, ownProps) {
     const _currentLayout = getCurrentLayout(state);
     const { remoteParticipants } = state['features/filmstrip'];
     const remoteParticipantsLength = remoteParticipants.length;
+    const { testing = {} } = state['features/base/config'];
+    const enableThumbnailReordering = testing.enableThumbnailReordering ?? true;
 
     if (_currentLayout === LAYOUTS.TILE_VIEW) {
         const { columnIndex, rowIndex } = ownProps;
@@ -111,23 +113,27 @@ function _mapStateToProps(state, ownProps) {
         const { columns, rows } = gridDimensions;
         const index = (rowIndex * columns) + columnIndex;
         let horizontalOffset;
+        const { iAmRecorder } = state['features/base/config'];
+        const participantsLenght = remoteParticipantsLength + (iAmRecorder ? 0 : 1);
 
         if (rowIndex === rows - 1) { // center the last row
             const { width: thumbnailWidth } = thumbnailSize;
-            const { iAmRecorder } = state['features/base/config'];
-            const partialLastRowParticipantsNumber = (remoteParticipantsLength + (iAmRecorder ? 0 : 1)) % columns;
+            const partialLastRowParticipantsNumber = participantsLenght % columns;
 
             if (partialLastRowParticipantsNumber > 0) {
                 horizontalOffset = Math.floor((columns - partialLastRowParticipantsNumber) * (thumbnailWidth + 4) / 2);
             }
         }
 
-        if (index > remoteParticipantsLength) {
+        if (index > participantsLenght - 1) {
             return {};
         }
 
-        // Make the local participant as the first thumbnail (top left corner) in tile view.
-        if (index === 0) {
+        // When the thumbnails are reordered, local participant is inserted at index 0.
+        const localIndex = enableThumbnailReordering ? 0 : remoteParticipantsLength;
+        const remoteIndex = enableThumbnailReordering && !iAmRecorder ? index - 1 : index;
+
+        if (!iAmRecorder && index === localIndex) {
             return {
                 _participantID: 'local',
                 _horizontalOffset: horizontalOffset
@@ -135,7 +141,7 @@ function _mapStateToProps(state, ownProps) {
         }
 
         return {
-            _participantID: remoteParticipants[index - 1],
+            _participantID: remoteParticipants[remoteIndex],
             _horizontalOffset: horizontalOffset
         };
     }

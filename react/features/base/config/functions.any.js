@@ -50,6 +50,16 @@ export function getMeetingRegion(state: Object) {
 }
 
 /**
+ * Selector used to get the disableRemoveRaisedHandOnFocus.
+ *
+ * @param {Object} state - The global state.
+ * @returns {boolean}
+ */
+export function getDisableRemoveRaisedHandOnFocus(state: Object) {
+    return state['features/base/config']?.disableRemoveRaisedHandOnFocus || false;
+}
+
+/**
  * Selector used to get the endpoint used for fetching the recording.
  *
  * @param {Object} state - The global state.
@@ -141,6 +151,18 @@ export function getWhitelistedJSON(configName: string, configJSON: Object): Obje
 
     return configJSON;
 }
+
+/**
+ * Selector for determining if the display name is read only.
+ *
+ * @param {Object} state - The state of the app.
+ * @returns {boolean}
+ */
+export function isNameReadOnly(state: Object): boolean {
+    return state['features/base/config'].disableProfile
+        || state['features/base/config'].readOnlyName;
+}
+
 
 /**
  * Restores a Jitsi Meet config.js from {@code localStorage} if it was

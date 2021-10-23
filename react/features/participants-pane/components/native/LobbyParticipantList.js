@@ -36,7 +36,8 @@ const LobbyParticipantList = ({ theme }: Props) => {
     }
 
     return (
-        <View style = { styles.lobbyList }>
+        <View
+            style = { styles.lobbyListContainer } >
             <View style = { styles.lobbyListDetails } >
                 <Text style = { styles.lobbyListDescription }>
                     {t('participantsPane.headings.waitingLobby',

@@ -134,7 +134,7 @@ class Chat extends AbstractChat<Props> {
             return (
                 <>
                     { this.props._isPollsEnabled && this._renderTabs()}
-                    <PollsPane />
+                    <TouchmoveHack isModal = { true }><PollsPane /></TouchmoveHack>
                     <KeyboardAvoider />
                 </>
             );
@@ -143,7 +143,9 @@ class Chat extends AbstractChat<Props> {
         return (
             <>
                 {this.props._isPollsEnabled && this._renderTabs()}
-                <TouchmoveHack isModal = { this.props._isModal }>
+                <TouchmoveHack
+                    flex = { true }
+                    isModal = { this.props._isModal }>
                     <MessageContainer
                         messages = { this.props._messages }
                         ref = { this._messageContainerRef } />
@@ -213,6 +215,7 @@ class Chat extends AbstractChat<Props> {
             <Header
                 className = 'chat-header'
                 id = 'chat-header'
+                isPollsEnabled = { this.props._isPollsEnabled }
                 onCancel = { this._onToggleChat } />
         );
     }
@@ -232,15 +235,19 @@ class Chat extends AbstractChat<Props> {
         if (_isOpen) {
             if (_isModal) {
                 ComponentToRender = (
-                    <ChatDialog>
-                        { _showNamePrompt ? <DisplayNameForm /> : this._renderChat() }
+                    <ChatDialog isPollsEnabled = { this.props._isPollsEnabled }>
+                        { _showNamePrompt
+                            ? <DisplayNameForm isPollsEnabled = { this.props._isPollsEnabled } />
+                            : this._renderChat() }
                     </ChatDialog>
                 );
             } else {
                 ComponentToRender = (
                     <>
                         { this._renderChatHeader() }
-                        { _showNamePrompt ? <DisplayNameForm /> : this._renderChat() }
+                        { _showNamePrompt
+                            ? <DisplayNameForm isPollsEnabled = { this.props._isPollsEnabled } />
+                            : this._renderChat() }
                     </>
                 );
             }

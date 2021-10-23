@@ -25,6 +25,11 @@ type Props = {
     children?: Node,
 
     /**
+     * Whether or not to disable the moderator indicator.
+     */
+    disableModeratorIndicator?: boolean,
+
+    /**
      * The name of the participant. Used for showing lobby names.
      */
     displayName: string,
@@ -33,6 +38,11 @@ type Props = {
      * Is the participant waiting?
      */
     isKnockingParticipant: boolean,
+
+    /**
+     * Whether or not the user is a moderator.
+     */
+    isModerator?: boolean,
 
     /**
      * True if the participant is local.
@@ -68,7 +78,9 @@ type Props = {
 function ParticipantItem({
     children,
     displayName,
+    disableModeratorIndicator,
     isKnockingParticipant,
+    isModerator,
     local,
     onPress,
     participantID,
@@ -88,11 +100,16 @@ function ParticipantItem({
                     className = 'participant-avatar'
                     participantId = { participantID }
                     size = { 32 } />
-                <View style = { styles.participantNameContainer }>
-                    <Text style = { styles.participantName }>
-                        { displayName }
-                    </Text>
-                    { local ? <Text style = { styles.isLocal }>({t('chat.you')})</Text> : null }
+                <View style = { styles.participantDetailsContainer }>
+                    <View style = { styles.participantNameContainer }>
+                        <Text style = { styles.participantName }>
+                            { displayName }
+                        </Text>
+                        { local ? <Text style = { styles.isLocal }>({t('chat.you')})</Text> : null }
+                    </View>
+                    {isModerator && !disableModeratorIndicator
+                        && <Text style = { styles.moderatorLabel }>{t('videothumbnail.moderator')}</Text>
+                    }
                 </View>
                 {
                     !isKnockingParticipant

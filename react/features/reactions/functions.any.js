@@ -2,6 +2,7 @@
 
 import uuid from 'uuid';
 
+import { getFeatureFlag, REACTIONS_ENABLED } from '../base/flags';
 import { getLocalParticipant } from '../base/participants';
 import { extractFqnFromPath } from '../dynamic-branding/functions';
 
@@ -54,7 +55,6 @@ export async function sendReactionsWebhook(state: Object, reactions: Array<?stri
     const { webhookProxyUrl: url } = state['features/base/config'];
     const { conference } = state['features/base/conference'];
     const { jwt } = state['features/base/jwt'];
-    const { locationURL } = state['features/base/connection'];
     const localParticipant = getLocalParticipant(state);
 
     const headers = {
@@ -64,7 +64,7 @@ export async function sendReactionsWebhook(state: Object, reactions: Array<?stri
 
 
     const reqBody = {
-        meetingFqn: extractFqnFromPath(locationURL.pathname),
+        meetingFqn: extractFqnFromPath(),
         sessionId: conference.sessionId,
         submitted: Date.now(),
         reactions,
@@ -141,4 +141,20 @@ export function getReactionsSoundsThresholds(reactions: Array<string>) {
             threshold: getSoundThresholdByFrequency(getReactionFrequency(reactions, reaction))
         };
     });
+}
+
+/**
+ * Whether or not the reactions are enabled.
+ *
+ * @param {Object} state - The Redux state object.
+ * @returns {boolean}
+ */
+export function isReactionsEnabled(state: Object) {
+    const { disableReactions } = state['features/base/config'];
+
+    if (navigator.product === 'ReactNative') {
+        return !disableReactions && getFeatureFlag(state, REACTIONS_ENABLED, true);
+    }
+
+    return !disableReactions;
 }

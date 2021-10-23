@@ -1,5 +1,6 @@
 // @flow
 
+import { isNameReadOnly } from '../base/config';
 import { SERVER_URL_CHANGE_ENABLED, getFeatureFlag } from '../base/flags';
 import { i18next, DEFAULT_LANGUAGE, LANGUAGES } from '../base/i18n';
 import { createLocalTrack } from '../base/lib-jitsi-meet/functions';
@@ -10,6 +11,7 @@ import {
 import { toState } from '../base/redux';
 import { parseStandardURIString } from '../base/util';
 import { isFollowMeActive } from '../follow-me';
+import { isReactionsEnabled } from '../reactions/functions.any';
 
 import { SS_DEFAULT_FRAME_RATE, SS_SUPPORTED_FRAMERATES } from './constants';
 
@@ -152,7 +154,8 @@ export function getProfileTabProps(stateful: Object | Function) {
         authEnabled: Boolean(conference && authEnabled),
         authLogin,
         displayName: localParticipant.name,
-        email: localParticipant.email
+        email: localParticipant.email,
+        readOnlyName: isNameReadOnly(state)
     };
 }
 
@@ -174,7 +177,7 @@ export function getSoundsTabProps(stateful: Object | Function) {
         soundsTalkWhileMuted,
         soundsReactions
     } = state['features/base/settings'];
-    const { enableReactions } = state['features/base/config'];
+    const enableReactions = isReactionsEnabled(state);
 
     return {
         soundsIncomingMessage,

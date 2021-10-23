@@ -12,17 +12,25 @@ import {
 
 import {
     setHorizontalViewDimensions,
-    setRemoteParticipants,
     setTileViewDimensions,
     setVerticalViewDimensions
-} from './actions.web';
-import { updateRemoteParticipants } from './functions.web';
-import './subscriber.web';
+} from './actions';
+import { updateRemoteParticipants, updateRemoteParticipantsOnLeave } from './functions';
+import './subscriber';
 
 /**
  * The middleware of the feature Filmstrip.
  */
 MiddlewareRegistry.register(store => next => action => {
+    if (action.type === PARTICIPANT_LEFT) {
+        // This has to be executed before we remove the participant from features/base/participants state in order to
+        // remove the related thumbnail component before we need to re-render it. If we do this after next()
+        // we will be in sitation where the participant exists in the remoteParticipants array in features/filmstrip
+        // but doesn't exist in features/base/participants state which will lead to rendering a thumbnail for
+        // non-existing participant.
+        updateRemoteParticipantsOnLeave(store, action.participant?.id);
+    }
+
     const result = next(action);
 
     switch (action.type) {
@@ -48,11 +56,7 @@ MiddlewareRegistry.register(store => next => action => {
         break;
     }
     case PARTICIPANT_JOINED: {
-        updateRemoteParticipants(store);
-        break;
-    }
-    case PARTICIPANT_LEFT: {
-        _updateRemoteParticipantsOnLeave(store, action.participant?.id);
+        updateRemoteParticipants(store, action.participant?.id);
         break;
     }
     case SETTINGS_UPDATED: {
@@ -66,23 +70,3 @@ MiddlewareRegistry.register(store => next => action => {
 
     return result;
 });
-
-/**
- * Private helper to calculate the reordered list of remote participants when a participant leaves.
- *
- * @param {*} store - The redux store.
- * @param {string} participantId - The endpoint id of the participant leaving the call.
- * @returns {void}
- * @private
- */
-function _updateRemoteParticipantsOnLeave(store, participantId = null) {
-    if (!participantId) {
-        return;
-    }
-    const state = store.getState();
-    const { remoteParticipants } = state['features/filmstrip'];
-    const reorderedParticipants = new Set(remoteParticipants);
-
-    reorderedParticipants.delete(participantId)
-        && store.dispatch(setRemoteParticipants(Array.from(reorderedParticipants)));
-}

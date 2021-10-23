@@ -55,9 +55,12 @@ export function createDesiredLocalTracks(...desiredTypes) {
         dispatch(destroyLocalDesktopTrackIfExists());
 
         if (desiredTypes.length === 0) {
-            const { audio, video } = state['features/base/media'];
+            const { video } = state['features/base/media'];
 
-            audio.muted || desiredTypes.push(MEDIA_TYPE.AUDIO);
+            // XXX: Always create the audio track early, even if it will be muted.
+            // This fixes a timing issue when adding the track to the conference which
+            // manifests primarily on iOS 15.
+            desiredTypes.push(MEDIA_TYPE.AUDIO);
 
             // XXX When the app is coming into the foreground from the
             // background in order to handle a URL, it may realize the new
@@ -258,17 +261,20 @@ export function showNoDataFromSourceVideoError(jitsiTrack) {
  *
  * @param {boolean} enabled - The state to toggle screen sharing to.
  * @param {boolean} audioOnly - Only share system audio.
+ * @param {boolean} ignoreDidHaveVideo - Wether or not to ignore if video was on when sharing started.
  * @returns {{
  *     type: TOGGLE_SCREENSHARING,
  *     on: boolean,
- *     audioOnly: boolean
+ *     audioOnly: boolean,
+ *     ignoreDidHaveVideo: boolean
  * }}
  */
-export function toggleScreensharing(enabled, audioOnly = false) {
+export function toggleScreensharing(enabled, audioOnly = false, ignoreDidHaveVideo = false) {
     return {
         type: TOGGLE_SCREENSHARING,
         enabled,
-        audioOnly
+        audioOnly,
+        ignoreDidHaveVideo
     };
 }
 

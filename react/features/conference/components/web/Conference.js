@@ -4,7 +4,6 @@ import _ from 'lodash';
 import React from 'react';
 
 import VideoLayout from '../../../../../modules/UI/videolayout/VideoLayout';
-import AudioModerationNotifications from '../../../av-moderation/components/AudioModerationNotifications';
 import { getConferenceNameForTitle } from '../../../base/conference';
 import { connect, disconnect } from '../../../base/connection';
 import { translate } from '../../../base/i18n';
@@ -18,9 +17,9 @@ import { KnockingParticipantList, LobbyScreen } from '../../../lobby';
 import { getIsLobbyVisible } from '../../../lobby/functions';
 import { ParticipantsPane } from '../../../participants-pane/components/web';
 import { getParticipantsPaneOpen } from '../../../participants-pane/functions';
-import { Prejoin, isPrejoinPageVisible, isPrejoinPageLoading } from '../../../prejoin';
+import { Prejoin, isPrejoinPageVisible } from '../../../prejoin';
 import { fullScreenChanged, showToolbox } from '../../../toolbox/actions.web';
-import { Toolbox } from '../../../toolbox/components/web';
+import { JitsiPortal, Toolbox } from '../../../toolbox/components/web';
 import { LAYOUTS, getCurrentLayout } from '../../../video-layout';
 import { maybeShowSuboptimalExperienceNotification } from '../../functions';
 import {
@@ -86,6 +85,11 @@ type Props = AbstractProps & {
      * The config specified interval for triggering mouseMoved iframe api events
      */
     _mouseMoveCallbackInterval: number,
+
+    /**
+     *Whether or not the notifications should be displayed in the overflow drawer.
+     */
+    _overflowDrawer: boolean,
 
     /**
      * Name for this conference room.
@@ -210,6 +214,8 @@ class Conference extends AbstractConference<Props, *> {
         const {
             _isParticipantsPaneVisible,
             _layoutClassName,
+            _notificationsVisible,
+            _overflowDrawer,
             _showLobby,
             _showPrejoin
         } = this.props;
@@ -233,15 +239,19 @@ class Conference extends AbstractConference<Props, *> {
                         {!_isParticipantsPaneVisible
                          && <div id = 'notification-participant-list'>
                              <KnockingParticipantList />
-                             <AudioModerationNotifications />
                          </div>}
                         <Filmstrip />
                     </div>
 
-                    { _showPrejoin || _showLobby || <Toolbox /> }
+                    { _showPrejoin || _showLobby || <Toolbox showDominantSpeakerName = { true } /> }
                     <Chat />
 
-                    { this.renderNotificationsContainer() }
+                    {_notificationsVisible && (_overflowDrawer
+                        ? <JitsiPortal className = 'notification-portal'>
+                            {this.renderNotificationsContainer({ portal: true })}
+                        </JitsiPortal>
+                        : this.renderNotificationsContainer())
+                    }
 
                     <CalleeInfoContainer />
 
@@ -370,6 +380,7 @@ class Conference extends AbstractConference<Props, *> {
  */
 function _mapStateToProps(state) {
     const { backgroundAlpha, mouseMoveCallbackInterval } = state['features/base/config'];
+    const { overflowDrawer } = state['features/toolbox'];
 
     return {
         ...abstractMapStateToProps(state),
@@ -377,9 +388,10 @@ function _mapStateToProps(state) {
         _isParticipantsPaneVisible: getParticipantsPaneOpen(state),
         _layoutClassName: LAYOUT_CLASSNAMES[getCurrentLayout(state)],
         _mouseMoveCallbackInterval: mouseMoveCallbackInterval,
+        _overflowDrawer: overflowDrawer,
         _roomName: getConferenceNameForTitle(state),
         _showLobby: getIsLobbyVisible(state),
-        _showPrejoin: isPrejoinPageVisible(state) || isPrejoinPageLoading(state)
+        _showPrejoin: isPrejoinPageVisible(state)
     };
 }
 
