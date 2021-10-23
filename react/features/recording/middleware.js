@@ -165,6 +165,10 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
 
                 sendAnalytics(createRecordingEvent('start', mode));
 
+                if (typeof APP !== 'undefined') {
+                    APP.API.notifyRecordingStatusChanged(true, mode);
+                }
+
                 if (disableRecordAudioNotification) {
                     break;
                 }
@@ -179,10 +183,6 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
 
                 if (soundID) {
                     dispatch(playSound(soundID));
-                }
-
-                if (typeof APP !== 'undefined') {
-                    APP.API.notifyRecordingStatusChanged(true, mode);
                 }
             } else if (updatedSessionData.status === OFF
                 && (!oldSessionData || oldSessionData.status !== OFF)) {
@@ -200,6 +200,10 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
                 }
                 sendAnalytics(createRecordingEvent('stop', mode, duration));
 
+                if (typeof APP !== 'undefined') {
+                    APP.API.notifyRecordingStatusChanged(false, mode);
+                }
+
                 if (disableRecordAudioNotification) {
                     break;
                 }
@@ -215,10 +219,6 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
                 if (soundOff && soundOn) {
                     dispatch(stopSound(soundOn));
                     dispatch(playSound(soundOff));
-                }
-
-                if (typeof APP !== 'undefined') {
-                    APP.API.notifyRecordingStatusChanged(false, mode);
                 }
             }
         }

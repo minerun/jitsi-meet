@@ -45,6 +45,7 @@ import {
 } from '../../react/features/large-video/actions.any';
 import {
     captureLargeVideoScreenshot,
+    recordLargeVideoLocally,
     resizeLargeVideo
 } from '../../react/features/large-video/actions.web';
 import { toggleLobbyMode } from '../../react/features/lobby/actions';
@@ -483,11 +484,26 @@ function initCommands() {
             return true;
         }
 
-        const { name } = request;
+        const { name, recordTime } = request;
 
         switch (name) {
         case 'capture-largevideo-screenshot' :
             APP.store.dispatch(captureLargeVideoScreenshot())
+                .then(dataURL => {
+                    let error;
+
+                    if (!dataURL) {
+                        error = new Error('No large video found!');
+                    }
+
+                    callback({
+                        error,
+                        dataURL
+                    });
+                });
+            break;
+        case 'record-largevideo-locally' :
+            APP.store.dispatch(recordLargeVideoLocally(recordTime))
                 .then(dataURL => {
                     let error;
 

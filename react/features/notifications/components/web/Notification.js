@@ -43,7 +43,6 @@ class Notification extends AbstractNotification<Props> {
     render() {
         const {
             appearance,
-            hideErrorSupportLink,
             t,
             title,
             titleArguments,
@@ -53,7 +52,7 @@ class Notification extends AbstractNotification<Props> {
 
         return (
             <Flag
-                actions = { this._mapAppearanceToButtons(hideErrorSupportLink) }
+                actions = { this._mapAppearanceToButtons() }
                 appearance = { appearance }
                 description = { this._renderDescription() }
                 icon = { this._mapAppearanceToIcon() }
@@ -101,12 +100,10 @@ class Notification extends AbstractNotification<Props> {
      * Creates action button configurations for the notification based on
      * notification appearance.
      *
-     * @param {boolean} hideErrorSupportLink - Indicates if the support link
-     * should be hidden in the error messages.
      * @private
      * @returns {Object[]}
      */
-    _mapAppearanceToButtons(hideErrorSupportLink) {
+    _mapAppearanceToButtons() {
         switch (this.props.appearance) {
         case NOTIFICATION_TYPE.ERROR: {
             const buttons = [
@@ -116,12 +113,12 @@ class Notification extends AbstractNotification<Props> {
                 }
             ];
 
-            if (!hideErrorSupportLink && interfaceConfig.SUPPORT_URL) {
-                buttons.push({
-                    content: this.props.t('dialog.contactSupport'),
-                    onClick: this._onOpenSupportLink
-                });
-            }
+            // if (!hideErrorSupportLink && interfaceConfig.SUPPORT_URL) {
+            //     buttons.push({
+            //         content: this.props.t('dialog.contactSupport'),
+            //         onClick: this._onOpenSupportLink
+            //     });
+            // }
 
             return buttons;
         }

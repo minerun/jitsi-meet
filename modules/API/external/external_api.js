@@ -677,6 +677,20 @@ export default class JitsiMeetExternalAPI extends EventEmitter {
     }
 
     /**
+     * Record the large video.
+     *
+     * @param {number} recordTime - The seconds of record time.
+     * @returns {Promise<*>} - Resolves with a video data
+     * if large video is detected, an error otherwise.
+     */
+    recordLargeVideoLocally(recordTime) {
+        return this._transport.sendRequest({
+            name: 'record-largevideo-locally',
+            recordTime
+        });
+    }
+
+    /**
      * Removes the listeners and removes the Jitsi Meet frame.
      *
      * @returns {void}

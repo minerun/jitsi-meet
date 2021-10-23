@@ -1,14 +1,13 @@
 /* global interfaceConfig */
 // list of tips
 const hints = [
-    'You can pin participants by clicking on their thumbnails.',
-    'You can tell others you have something to say by using the "Raise Hand" '
-        + 'feature',
-    'You can learn about key shortcuts by pressing Shift+?',
-    'You can learn more about the state of everyone\'s connection by hovering '
-        + 'on the bars in their thumbnail',
-    'You can hide all thumbnails by using the button in the bottom right corner'
+    '可以通过点击参与者的头像来锁定他们。',
+    '可以使用“举手”功能告诉别人您有话要说',
+    '按Shift+?可以获取快捷键列表',
+    '将鼠标悬停在头像的连接状态上，可以了解连接状态的更多信息',
+    '点击右下角的按钮可以隐藏所有头像'
 ];
+
 
 /**
  * Get a random hint message from hint array.
@@ -44,7 +43,7 @@ function onLoad() {
     // Intentionally use string concatenation as this file does not go through
     // babel but IE11 is still supported.
     // eslint-disable-next-line prefer-template
-    const thankYouMessage = 'Thank you for using ' + interfaceConfig.APP_NAME;
+    const thankYouMessage = '感谢使用 ' + interfaceConfig.APP_NAME;
 
     // Works only for close2.html because close.html doesn't have this element.
     insertTextMsg('thanksMessage', thankYouMessage);

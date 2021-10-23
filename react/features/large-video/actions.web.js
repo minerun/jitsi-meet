@@ -4,11 +4,17 @@ import type { Dispatch } from 'redux';
 
 import VideoLayout from '../../../modules/UI/videolayout/VideoLayout';
 import { MEDIA_TYPE } from '../base/media';
-import { getTrackByMediaTypeAndParticipant } from '../base/tracks';
+import {
+    getTrackByMediaTypeAndParticipant,
+    getLocalVideoTrack,
+    getLocalAudioTrack
+} from '../base/tracks';
 
 import { UPDATE_LAST_LARGE_VIDEO_MEDIA_EVENT } from './actionTypes';
 
 export * from './actions.any';
+
+declare var MediaRecorder: Function;
 
 /**
 * Captures a screenshot of the video displayed on the large video.
@@ -62,6 +68,88 @@ export function captureLargeVideoScreenshot() {
         canvasElement.remove();
 
         return Promise.resolve(dataURL);
+    };
+}
+
+/**
+ * Record a short video displayed on the large video.
+ *
+ * @param {number} recordTime - The time in seconds.
+ * @returns {Function}
+ */
+export function recordLargeVideoLocally(recordTime: number) {
+    return (dispatch: Dispatch<any>, getState: Function): Promise<*> => {
+        const state = getState();
+        const largeVideo = state['features/large-video'];
+        const promise = Promise.resolve();
+
+        if (!largeVideo) {
+            return promise;
+        }
+
+        if (!recordTime) {
+            return promise;
+        }
+
+        const tracks = state['features/base/tracks'];
+        const videoTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.VIDEO, largeVideo.participantId);
+        const audioTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, largeVideo.participantId);
+
+        // Participants that join the call video muted do not have a jitsiTrack attached.
+        if (!(videoTrack && videoTrack.jitsiTrack)) {
+            return promise;
+        }
+        const videoStream = videoTrack.jitsiTrack.getOriginalStream().clone();
+
+        if (!videoStream) {
+            return promise;
+        }
+
+        if (!audioTrack) {
+            videoStream.addTrack(audioTrack);
+        } else if (largeVideo.participantId === getLocalVideoTrack(tracks).participantId) {
+            if (getLocalAudioTrack(tracks)) {
+                videoStream.addTrack(getLocalAudioTrack(tracks).jitsiTrack.track);
+            }
+        }
+
+        // Get the video element for the large video, cast HTMLElement to HTMLVideoElement to make flow happy.
+        /* eslint-disable-next-line no-extra-parens*/
+        const videoElement = ((document.getElementById('largeVideo'): any): HTMLVideoElement);
+
+        if (!videoElement) {
+            return promise;
+        }
+
+        const chunks = [];
+        const recorder = new MediaRecorder(videoStream);
+
+        console.log('Start recording...');
+        recorder.ondataavailable = e => chunks.push(e.data);
+
+        return Promise.resolve(recorder.start(1000))
+            .then(() =>
+                new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve();
+                    }, recordTime * 1000);
+                })
+            )
+            .then(() =>
+                new Promise((resolve, reject) => {
+                    console.log('Stop recording.');
+                    recorder.stop();
+                    recorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'video/webm' });
+                        const reader = new FileReader();
+
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = () => reject(reader.error);
+                        reader.onabort = () => reject(new Error('Read aborted'));
+                        reader.readAsDataURL(blob);
+                    };
+                })
+            );
     };
 }
 
