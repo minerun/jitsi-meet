@@ -175,6 +175,10 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
                 if (soundID) {
                     dispatch(playSound(soundID));
                 }
+
+                if (typeof APP !== 'undefined') {
+                    APP.API.notifyRecordingStatusChanged(true, mode);
+                }
             } else if (updatedSessionData.status === OFF
                 && (!oldSessionData || oldSessionData.status !== OFF)) {
                 if (terminator) {
@@ -191,17 +195,6 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
                 }
                 sendAnalytics(createRecordingEvent('stop', mode, duration));
 
-<<<<<<< HEAD
-                if (typeof APP !== 'undefined') {
-                    APP.API.notifyRecordingStatusChanged(false, mode);
-                }
-
-                if (disableRecordAudioNotification) {
-                    break;
-                }
-
-=======
->>>>>>> 3ef6859c9ba58817653948ee877696f21149c898
                 if (mode === JitsiRecordingConstants.mode.FILE) {
                     soundOff = RECORDING_OFF_SOUND_ID;
                     soundOn = RECORDING_ON_SOUND_ID;
@@ -213,6 +206,10 @@ MiddlewareRegistry.register(({ dispatch, getState }) => next => action => {
                 if (soundOff && soundOn) {
                     dispatch(stopSound(soundOn));
                     dispatch(playSound(soundOff));
+                }
+
+                if (typeof APP !== 'undefined') {
+                    APP.API.notifyRecordingStatusChanged(false, mode);
                 }
             }
         }
