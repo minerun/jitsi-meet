@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
       with:
-        node-version: '12.x'
+        node-version: '14.x'
 
     - name: Initialization Environment
       id: dev
@@ -31,6 +31,7 @@ jobs:
         echo "PROJECTROOT=$PWD" >> $GITHUB_ENV
         echo "::set-output name=PROJECTROOT::$(echo $PWD)"
         sudo apt-get install -y devscripts debhelper nodejs
+        npm install -g npm@7
         npm install
 
     - name: Check if the git repository is clean

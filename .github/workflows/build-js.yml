@@ -13,16 +13,16 @@ env:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-11
 
     outputs:
       PROJECTROOT: ${{ steps.dev.outputs.PROJECTROOT }}
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
+    - uses: actions/setup-node@v1
       with:
-        node-version: '14'
+        node-version: '14.x'
 
     - name: Initialization Environment
       id: dev
@@ -30,6 +30,7 @@ jobs:
         echo "PROJECTROOT=$PWD" >> $GITHUB_ENV
         echo "::set-output name=PROJECTROOT::$(echo $PWD)"
         brew install coreutils
+        npm install -g npm@7
         npm install
 
     - name: Check if the git repository is clean
