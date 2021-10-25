@@ -1,0 +1,93 @@
+name: build-all
+
+on:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    outputs:
+      PROJECTROOT: ${{ steps.dev.outputs.PROJECTROOT }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+
+    - name: Initialization Environment
+      id: dev
+      run: |
+        echo "PROJECTROOT=$PWD" >> $GITHUB_ENV
+        echo "::set-output name=PROJECTROOT::$(echo $PWD)"
+        brew install coreutils
+        npm install
+
+    - name: Check if the git repository is clean
+      run: exit $( git status --porcelain --untracked-files=no | head -255 | wc -l )
+    - run: npm run lint
+    - run: make
+
+    - name: set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    - run: cd $PROJECTROOT
+    - name: Build Android SDK
+      run: ./android/scripts/release-sdk.sh /tmp/repo
+
+
+    - name: Install pod dependencies
+      run: |
+        cd $PROJECTROOT/ios && pod install
+    - name: Build IOS SDK
+      run: |
+        mkdir -p ios/sdk/out
+        xcodebuild clean \
+            -workspace ios/jitsi-meet.xcworkspace \
+            -scheme JitsiMeetSDK
+        xcodebuild archive \
+            -workspace ios/jitsi-meet.xcworkspace \
+            -scheme JitsiMeetSDK  \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination='generic/platform=iOS Simulator' \
+            -archivePath ios/sdk/out/ios-simulator \
+            VALID_ARCHS=x86_64 \
+            ENABLE_BITCODE=NO \
+            SKIP_INSTALL=NO \
+            BUILD_LIBRARY_FOR_DISTRIBUTION=YES
+        xcodebuild archive \
+            -workspace ios/jitsi-meet.xcworkspace \
+            -scheme JitsiMeetSDK  \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination='generic/platform=iOS' \
+            -archivePath ios/sdk/out/ios-device \
+            VALID_ARCHS=arm64 \
+            ENABLE_BITCODE=NO \
+            SKIP_INSTALL=NO \
+            BUILD_LIBRARY_FOR_DISTRIBUTION=YES
+        xcodebuild -create-xcframework \
+            -framework ios/sdk/out/ios-device.xcarchive/Products/Library/Frameworks/JitsiMeetSDK.framework \
+            -framework ios/sdk/out/ios-simulator.xcarchive/Products/Library/Frameworks/JitsiMeetSDK.framework \
+            -output ios/sdk/out/JitsiMeetSDK.xcframework
+        cp -a node_modules/react-native-webrtc/apple/WebRTC.xcframework ios/sdk/out
+
+    - name: Upload directory
+      uses: actions/upload-artifact@v2
+      with:
+        name: artifacts
+        path: |
+          ${{ env.PROJECTROOT }}/jitsi-meet.tar.bz2
+          /tmp/repo/
+          ${{ env.PROJECTROOT }}/ios/sdk/out/

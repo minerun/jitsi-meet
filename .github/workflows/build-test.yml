@@ -1,0 +1,46 @@
+name: build-test
+
+on:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+
+env:
+  # PROJECTROOT: /home/runner/work/jitsi-meet-for-dev/jitsi-meet-for-dev
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+
+    outputs:
+      PROJECTROOT: ${{ steps.dev.outputs.PROJECTROOT }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+
+    - name: Initialization Environment
+      id: dev
+      run: |
+        echo "PROJECTROOT=$PWD" >> $GITHUB_ENV
+        echo "::set-output name=PROJECTROOT::$(echo $PWD)"
+        echo $PROJECTROOT
+
+    - name: List
+      id: list
+      run: |
+        ls -tail $PROJECTROOT
+
+    - name: Upload directory
+      uses: actions/upload-artifact@v2
+      with:
+        name: artifacts
+        path: |
+          ${{ env.PROJECTROOT }}/index.html
