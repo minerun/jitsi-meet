@@ -172,6 +172,7 @@ function initCommands() {
                     conference.lock,
                     password
                 ));
+
             }
         },
         'pin-participant': id => {
@@ -277,6 +278,7 @@ function initCommands() {
                 APP.store.dispatch(disable());
             }
         },
+
         'toggle-raise-hand': () => {
             const localParticipant = getLocalParticipant(APP.store.getState());
 
@@ -579,6 +581,7 @@ function initCommands() {
                         dataURL
                     });
                 });
+            break;
         case 'deployment-info':
             callback(APP.store.getState()['features/base/config'].deploymentInfo);
             break;
