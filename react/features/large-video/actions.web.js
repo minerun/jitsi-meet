@@ -4,6 +4,7 @@ import type { Dispatch } from 'redux';
 
 import VideoLayout from '../../../modules/UI/videolayout/VideoLayout';
 import { MEDIA_TYPE } from '../base/media';
+import { getParticipantByIdOrUndefined } from '../base/participants';
 import {
     getTrackByMediaTypeAndParticipant,
     getLocalVideoTrack,
@@ -92,25 +93,27 @@ export function recordLargeVideoLocally(recordTime: number) {
         }
 
         const tracks = state['features/base/tracks'];
-        const videoTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.VIDEO, largeVideo.participantId);
-        const audioTrack = getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, largeVideo.participantId);
+        const participant = getParticipantByIdOrUndefined(state, largeVideo.participantId);
+        const isLocal = participant?.local ?? true;
+        const _videoTrack = isLocal
+            ? getLocalVideoTrack(tracks)
+            : getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.VIDEO, largeVideo.participantId);
+        const _audioTrack = isLocal
+            ? getLocalAudioTrack(tracks)
+            : getTrackByMediaTypeAndParticipant(tracks, MEDIA_TYPE.AUDIO, largeVideo.participantId);
 
         // Participants that join the call video muted do not have a jitsiTrack attached.
-        if (!(videoTrack && videoTrack.jitsiTrack)) {
+        if (!(_videoTrack && _videoTrack.jitsiTrack)) {
             return promise;
         }
-        const videoStream = videoTrack.jitsiTrack.getOriginalStream().clone();
+        const videoStream = _videoTrack.jitsiTrack.getOriginalStream().clone();
 
         if (!videoStream) {
             return promise;
         }
 
-        if (!audioTrack) {
-            videoStream.addTrack(audioTrack);
-        } else if (largeVideo.participantId === getLocalVideoTrack(tracks).participantId) {
-            if (getLocalAudioTrack(tracks)) {
-                videoStream.addTrack(getLocalAudioTrack(tracks).jitsiTrack.track);
-            }
+        if (_audioTrack) {
+            videoStream.addTrack(_audioTrack.jitsiTrack.track);
         }
 
         // Get the video element for the large video, cast HTMLElement to HTMLVideoElement to make flow happy.
