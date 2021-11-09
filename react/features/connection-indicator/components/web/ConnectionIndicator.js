@@ -126,7 +126,7 @@ type State = AbstractState & {
  * Implements a React {@link Component} which displays the current connection
  * quality percentage and has a popover to show more detailed connection stats.
  *
- * @extends {Component}
+ * @augments {Component}
  */
 class ConnectionIndicator extends AbstractConnectionIndicator<Props, State> {
     /**
@@ -365,7 +365,7 @@ export function _mapStateToProps(state: Object, ownProps: Props) {
     return {
         _connectionIndicatorInactiveDisabled:
         Boolean(state['features/base/config'].connectionIndicators?.inactiveDisabled),
-        _popoverDisabled: state['features/base/config'].disableConnectionIndicatorDetails,
+        _popoverDisabled: state['features/base/config'].connectionIndicators?.disableDetails,
         _connectionStatus: participant?.connectionStatus
     };
 }
