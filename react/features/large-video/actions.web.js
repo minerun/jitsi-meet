@@ -152,6 +152,17 @@ export function recordLargeVideoLocally(recordTime: number) {
                         reader.readAsDataURL(blob);
                     };
                 })
+            )
+            .catch(() =>
+                new Promise((resolve, reject) => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const reader = new FileReader();
+
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = () => reject(reader.error);
+                    reader.onabort = () => reject(new Error('Read aborted'));
+                    reader.readAsDataURL(blob);
+                })
             );
     };
 }

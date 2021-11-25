@@ -1168,6 +1168,15 @@
     "helpView": {
         "header": "帮助中心"
     },
+    "termsView": {
+        "header": "条款"
+    },
+    "privacyView": {
+        "header": "隐私"
+    },
+    "welcome": {
+        "header": "首页"
+    },
     "lobby": {
         "admit": "准许",
         "admitAll": "准许所有人",
